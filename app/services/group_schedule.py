@@ -1,0 +1,71 @@
+from sqlalchemy.orm import Session
+from app.models.group_schedule import GroupSchedule, GroupScheduleAttendee, GroupScheduleAvailability
+from app.schemas.group_schedule import GroupScheduleCreate
+
+
+def get_group_schedules(db: Session, group_id: int):
+    schedules = db.query(GroupSchedule).filter(GroupSchedule.group_id == group_id).all()
+    result = []
+    for s in schedules:
+        attendees = [
+            a.user_id for a in db.query(GroupScheduleAttendee)
+            .filter(GroupScheduleAttendee.group_schedule_id == s.id).all()
+        ]
+        availability: dict = {}
+        for row in db.query(GroupScheduleAvailability).filter(
+            GroupScheduleAvailability.group_schedule_id == s.id
+        ).all():
+            key = str(row.user_id)
+            availability.setdefault(key, []).append(row.available_date)
+
+        result.append({
+            "id": s.id,
+            "title": s.title,
+            "confirmed_date": s.confirmed_date,
+            "attendees": attendees,
+            "availability": availability,
+        })
+    return result
+
+
+def create_group_schedule(db: Session, group_id: int, data: GroupScheduleCreate):
+    schedule = GroupSchedule(group_id=group_id, title=data.title)
+    db.add(schedule)
+    db.flush()
+    for user_id in data.attendees:
+        db.add(GroupScheduleAttendee(group_schedule_id=schedule.id, user_id=user_id))
+    db.commit()
+    db.refresh(schedule)
+    return schedule
+
+
+def update_availability(db: Session, schedule_id: int, member_id: int, available_dates: list):
+    db.query(GroupScheduleAvailability).filter(
+        GroupScheduleAvailability.group_schedule_id == schedule_id,
+        GroupScheduleAvailability.user_id == member_id,
+    ).delete()
+    for date in available_dates:
+        db.add(GroupScheduleAvailability(
+            group_schedule_id=schedule_id, user_id=member_id, available_date=date
+        ))
+    db.commit()
+
+
+def confirm_date(db: Session, schedule_id: int, confirmed_date: str) -> bool:
+    schedule = db.query(GroupSchedule).filter(GroupSchedule.id == schedule_id).first()
+    if not schedule:
+        return False
+    schedule.confirmed_date = confirmed_date  # type: ignore
+    db.commit()
+    return True
+
+
+def delete_group_schedule(db: Session, schedule_id: int) -> bool:
+    schedule = db.query(GroupSchedule).filter(GroupSchedule.id == schedule_id).first()
+    if not schedule:
+        return False
+    db.query(GroupScheduleAttendee).filter(GroupScheduleAttendee.group_schedule_id == schedule_id).delete(synchronize_session=False)
+    db.query(GroupScheduleAvailability).filter(GroupScheduleAvailability.group_schedule_id == schedule_id).delete(synchronize_session=False)
+    db.delete(schedule)
+    db.commit()
+    return True
