@@ -36,6 +36,7 @@ def signup(db: Session, user: UserCreate) -> User:
         nickname=user.nickname,
         password=hash_password(user.password),
         phone=user.phone,
+        avatar=user.avatar,
     )
     db.add(db_user)
     db.commit()

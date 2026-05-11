@@ -11,3 +11,4 @@ class User(TimestampMixin, Base):
     nickname = Column(String, unique=True, nullable=False)
     password = Column(String, nullable=False)
     phone = Column(String, unique=True, nullable=False)
+    avatar = Column(Integer, nullable=False, default=1)
