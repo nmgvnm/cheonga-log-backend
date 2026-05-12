@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.schemas.user import UserResponse, UserUpdate
 from app.services.dependencies import get_current_user, get_db
@@ -14,4 +14,7 @@ def get_me(current_user=Depends(get_current_user)):
 
 @router.patch("/me", response_model=UserResponse)
 def update_me(data: UserUpdate, current_user=Depends(get_current_user), db: Session = Depends(get_db)):
-    return user_service.update_user(db, current_user, data)
+    try:
+        return user_service.update_user(db, current_user, data)
+    except ValueError as e:
+        raise HTTPException(status_code=409, detail=str(e))

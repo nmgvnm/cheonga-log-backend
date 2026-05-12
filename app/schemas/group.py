@@ -21,5 +21,6 @@ class MemberResponse(BaseModel):
     id: int
     user_id: str
     nickname: str
+    avatar: int
 
     model_config = {"from_attributes": True}
