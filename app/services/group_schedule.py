@@ -24,12 +24,19 @@ def get_group_schedules(db: Session, group_id: int):
             "confirmed_date": s.confirmed_date,
             "attendees": attendees,
             "availability": availability,
+            "type": s.type or "meeting",
+            "duration_days": s.duration_days,
         })
     return result
 
 
 def create_group_schedule(db: Session, group_id: int, data: GroupScheduleCreate):
-    schedule = GroupSchedule(group_id=group_id, title=data.title)
+    schedule = GroupSchedule(
+        group_id=group_id,
+        title=data.title,
+        type=data.type,
+        duration_days=data.duration_days,
+    )
     db.add(schedule)
     db.flush()
     for user_id in data.attendees:

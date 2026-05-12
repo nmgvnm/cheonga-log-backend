@@ -5,6 +5,8 @@ from typing import Optional, List, Dict
 class GroupScheduleCreate(BaseModel):
     title: str
     attendees: List[int]
+    type: str = "meeting"
+    duration_days: Optional[int] = None
 
 
 class AvailabilityUpdate(BaseModel):
@@ -22,3 +24,5 @@ class GroupScheduleResponse(BaseModel):
     confirmed_date: Optional[str] = None
     attendees: List[int] = []
     availability: Dict[str, List[str]] = {}
+    type: str = "meeting"
+    duration_days: Optional[int] = None
