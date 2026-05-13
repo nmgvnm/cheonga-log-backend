@@ -2,9 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
 
-from app.schemas.group import GroupCreate, GroupJoin, GroupResponse, MemberResponse
+from app.schemas.group import GroupCreate, GroupJoin, GroupResponse, MemberResponse, GroupRename, OwnerTransfer
 from app.schemas.meeting import MeetingCreate, MeetingResponse
-from app.schemas.group_schedule import GroupScheduleCreate, AvailabilityUpdate, ConfirmDate, GroupScheduleResponse
+from app.schemas.group_schedule import GroupScheduleCreate, AvailabilityUpdate, ConfirmDate, ScheduleDetailUpdate, GroupScheduleResponse
 from app.services.dependencies import get_db, get_current_user
 from app.services import group as group_service
 from app.services import meeting as meeting_service
@@ -36,6 +36,27 @@ def delete_group(group_id: int, current_user=Depends(get_current_user), db: Sess
     if not group_service.delete_group(db, group_id, current_user.id):
         raise HTTPException(status_code=404, detail="모임을 찾을 수 없거나 권한이 없습니다.")
     return {"message": "삭제되었습니다."}
+
+
+@router.patch("/{group_id}")
+def rename_group(group_id: int, data: GroupRename, current_user=Depends(get_current_user), db: Session = Depends(get_db)):
+    if not group_service.rename_group(db, group_id, current_user.id, data.name):
+        raise HTTPException(status_code=403, detail="권한이 없거나 모임을 찾을 수 없습니다.")
+    return {"message": "방 이름이 변경되었습니다."}
+
+
+@router.patch("/{group_id}/transfer")
+def transfer_ownership(group_id: int, data: OwnerTransfer, current_user=Depends(get_current_user), db: Session = Depends(get_db)):
+    if not group_service.transfer_ownership(db, group_id, current_user.id, data.new_owner_id):
+        raise HTTPException(status_code=403, detail="권한이 없거나 대상 멤버가 없습니다.")
+    return {"message": "방장이 위임되었습니다."}
+
+
+@router.delete("/{group_id}/members/{target_id}")
+def remove_member(group_id: int, target_id: int, current_user=Depends(get_current_user), db: Session = Depends(get_db)):
+    if not group_service.remove_member(db, group_id, current_user.id, target_id):
+        raise HTTPException(status_code=403, detail="권한이 없거나 멤버를 찾을 수 없습니다.")
+    return {"message": "멤버가 삭제되었습니다."}
 
 
 @router.get("/{group_id}/members", response_model=List[MemberResponse])
@@ -74,6 +95,13 @@ def confirm_date(group_id: int, schedule_id: int, data: ConfirmDate, current_use
     if not group_schedule_service.confirm_date(db, schedule_id, data.confirmed_date):
         raise HTTPException(status_code=404, detail="일정을 찾을 수 없습니다.")
     return {"message": "날짜가 확정되었습니다."}
+
+
+@router.patch("/{group_id}/schedules/{schedule_id}/detail")
+def update_schedule_detail(group_id: int, schedule_id: int, data: ScheduleDetailUpdate, current_user=Depends(get_current_user), db: Session = Depends(get_db)):
+    if not group_schedule_service.update_schedule_detail(db, schedule_id, data.confirmed_time, data.confirmed_location):
+        raise HTTPException(status_code=404, detail="일정을 찾을 수 없습니다.")
+    return {"message": "업데이트되었습니다."}
 
 
 @router.delete("/{group_id}/schedules/{schedule_id}")

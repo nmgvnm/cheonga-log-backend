@@ -22,6 +22,8 @@ def get_group_schedules(db: Session, group_id: int):
             "id": s.id,
             "title": s.title,
             "confirmed_date": s.confirmed_date,
+            "confirmed_time": s.confirmed_time,
+            "confirmed_location": s.confirmed_location,
             "attendees": attendees,
             "availability": availability,
             "type": s.type or "meeting",
@@ -63,6 +65,16 @@ def confirm_date(db: Session, schedule_id: int, confirmed_date: str) -> bool:
     if not schedule:
         return False
     schedule.confirmed_date = confirmed_date  # type: ignore
+    db.commit()
+    return True
+
+
+def update_schedule_detail(db: Session, schedule_id: int, confirmed_time: str | None, confirmed_location: str | None) -> bool:
+    schedule = db.query(GroupSchedule).filter(GroupSchedule.id == schedule_id).first()
+    if not schedule:
+        return False
+    setattr(schedule, "confirmed_time", confirmed_time)
+    setattr(schedule, "confirmed_location", confirmed_location)
     db.commit()
     return True
 

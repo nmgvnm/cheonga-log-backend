@@ -9,6 +9,8 @@ class GroupSchedule(Base):
     group_id = Column(Integer, ForeignKey("groups.id"), nullable=False)
     title = Column(String, nullable=False)
     confirmed_date = Column(String, nullable=True)
+    confirmed_time = Column(String, nullable=True)
+    confirmed_location = Column(String, nullable=True)
     type = Column(String, nullable=False, default="meeting")
     duration_days = Column(Integer, nullable=True)
 

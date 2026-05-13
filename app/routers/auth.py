@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from jose import jwt, JWTError
 import os
 
-from app.services.dependencies import get_db
+from app.services.dependencies import get_db, get_current_user
 from app.schemas.user import UserCreate, UserLogin, UserResponse, TokenResponse
 from app.services import auth as auth_service
 from app.models.user import User
@@ -12,6 +12,11 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 SECRET_KEY: str = os.getenv("SECRET_KEY") or ""
 ALGORITHM = os.getenv("ALGORITHM", "HS256")
+
+
+@router.get("/me", response_model=UserResponse)
+def get_me(current_user=Depends(get_current_user)):
+    return current_user
 
 
 @router.post("/signup", response_model=UserResponse)

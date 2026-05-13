@@ -18,10 +18,17 @@ class ConfirmDate(BaseModel):
     confirmed_date: str
 
 
+class ScheduleDetailUpdate(BaseModel):
+    confirmed_time: Optional[str] = None
+    confirmed_location: Optional[str] = None
+
+
 class GroupScheduleResponse(BaseModel):
     id: int
     title: str
     confirmed_date: Optional[str] = None
+    confirmed_time: Optional[str] = None
+    confirmed_location: Optional[str] = None
     attendees: List[int] = []
     availability: Dict[str, List[str]] = {}
     type: str = "meeting"
