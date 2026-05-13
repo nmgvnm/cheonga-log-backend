@@ -33,3 +33,8 @@ class GroupScheduleResponse(BaseModel):
     availability: Dict[str, List[str]] = {}
     type: str = "meeting"
     duration_days: Optional[int] = None
+
+
+class AllGroupScheduleResponse(GroupScheduleResponse):
+    group_id: int
+    group_name: str

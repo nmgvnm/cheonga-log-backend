@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 from app.models.group_schedule import GroupSchedule, GroupScheduleAttendee, GroupScheduleAvailability
+from app.models.group import Group, GroupMember
 from app.schemas.group_schedule import GroupScheduleCreate
 
 
@@ -67,6 +68,21 @@ def confirm_date(db: Session, schedule_id: int, confirmed_date: str) -> bool:
     schedule.confirmed_date = confirmed_date  # type: ignore
     db.commit()
     return True
+
+
+def get_all_group_schedules(db: Session, user_id: int):
+    group_ids = (
+        db.query(GroupMember.group_id)
+        .filter(GroupMember.user_id == user_id)
+        .scalar_subquery()
+    )
+    groups = db.query(Group).filter(Group.id.in_(group_ids)).all()
+
+    result = []
+    for group in groups:
+        for s in get_group_schedules(db, group.id):
+            result.append({**s, "group_id": group.id, "group_name": group.name})
+    return result
 
 
 def update_schedule_detail(db: Session, schedule_id: int, confirmed_time: str | None, confirmed_location: str | None) -> bool:

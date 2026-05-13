@@ -4,7 +4,7 @@ from typing import List
 
 from app.schemas.group import GroupCreate, GroupJoin, GroupResponse, MemberResponse, GroupRename, OwnerTransfer
 from app.schemas.meeting import MeetingCreate, MeetingResponse
-from app.schemas.group_schedule import GroupScheduleCreate, AvailabilityUpdate, ConfirmDate, ScheduleDetailUpdate, GroupScheduleResponse
+from app.schemas.group_schedule import GroupScheduleCreate, AvailabilityUpdate, ConfirmDate, ScheduleDetailUpdate, GroupScheduleResponse, AllGroupScheduleResponse
 from app.services.dependencies import get_db, get_current_user
 from app.services import group as group_service
 from app.services import meeting as meeting_service
@@ -21,6 +21,11 @@ def get_groups(current_user=Depends(get_current_user), db: Session = Depends(get
 @router.post("", response_model=GroupResponse)
 def create_group(data: GroupCreate, current_user=Depends(get_current_user), db: Session = Depends(get_db)):
     return group_service.create_group(db, current_user.id, data)
+
+
+@router.get("/schedules", response_model=List[AllGroupScheduleResponse])
+def get_all_group_schedules(current_user=Depends(get_current_user), db: Session = Depends(get_db)):
+    return group_schedule_service.get_all_group_schedules(db, current_user.id)
 
 
 @router.post("/join", response_model=GroupResponse)
