@@ -4,7 +4,7 @@ from typing import List
 
 from app.schemas.group import GroupCreate, GroupJoin, GroupResponse, MemberResponse, GroupRename, OwnerTransfer
 from app.schemas.meeting import MeetingCreate, MeetingResponse
-from app.schemas.group_schedule import GroupScheduleCreate, AvailabilityUpdate, ConfirmDate, ScheduleDetailUpdate, GroupScheduleResponse, AllGroupScheduleResponse
+from app.schemas.group_schedule import GroupScheduleCreate, AvailabilityUpdate, ConfirmDate, ScheduleDetailUpdate, AttendeeAdd, GroupScheduleResponse, AllGroupScheduleResponse
 from app.services.dependencies import get_db, get_current_user
 from app.services import group as group_service
 from app.services import meeting as meeting_service
@@ -107,6 +107,13 @@ def update_schedule_detail(group_id: int, schedule_id: int, data: ScheduleDetail
     if not group_schedule_service.update_schedule_detail(db, schedule_id, data.confirmed_time, data.confirmed_location):
         raise HTTPException(status_code=404, detail="일정을 찾을 수 없습니다.")
     return {"message": "업데이트되었습니다."}
+
+
+@router.post("/{group_id}/schedules/{schedule_id}/attendees")
+def add_schedule_attendee(group_id: int, schedule_id: int, data: AttendeeAdd, current_user=Depends(get_current_user), db: Session = Depends(get_db)):
+    if not group_schedule_service.add_schedule_attendee(db, schedule_id, data.user_id):
+        raise HTTPException(status_code=404, detail="일정을 찾을 수 없습니다.")
+    return {"message": "멤버가 추가되었습니다."}
 
 
 @router.delete("/{group_id}/schedules/{schedule_id}")

@@ -23,6 +23,10 @@ class ScheduleDetailUpdate(BaseModel):
     confirmed_location: Optional[str] = None
 
 
+class AttendeeAdd(BaseModel):
+    user_id: int
+
+
 class GroupScheduleResponse(BaseModel):
     id: int
     title: str

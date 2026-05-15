@@ -95,6 +95,21 @@ def update_schedule_detail(db: Session, schedule_id: int, confirmed_time: str | 
     return True
 
 
+def add_schedule_attendee(db: Session, schedule_id: int, user_id: int) -> bool:
+    schedule = db.query(GroupSchedule).filter(GroupSchedule.id == schedule_id).first()
+    if not schedule:
+        return False
+    already = db.query(GroupScheduleAttendee).filter(
+        GroupScheduleAttendee.group_schedule_id == schedule_id,
+        GroupScheduleAttendee.user_id == user_id,
+    ).first()
+    if already:
+        return True
+    db.add(GroupScheduleAttendee(group_schedule_id=schedule_id, user_id=user_id))
+    db.commit()
+    return True
+
+
 def delete_group_schedule(db: Session, schedule_id: int) -> bool:
     schedule = db.query(GroupSchedule).filter(GroupSchedule.id == schedule_id).first()
     if not schedule:
